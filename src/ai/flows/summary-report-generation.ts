@@ -34,7 +34,13 @@ export type GenerateSummaryReportOutput = z.infer<
 export async function generateSummaryReport(
   input: GenerateSummaryReportInput
 ): Promise<GenerateSummaryReportOutput> {
-  return generateSummaryReportFlow(input);
+  const { callGroqWithFallback } = await import('@/ai/groq-client');
+  
+  return await callGroqWithFallback(input, {
+    systemPrompt: 'You are an expert meeting summarizer. Generate a concise summary report. Return JSON with a "summaryReport" string field.',
+    userPrompt: `Generate a meeting summary from this transcript:\n\nTranscript: ${input.transcript}\n\nOverall Sentiment: ${input.overallSentiment}\n\nRelationship Summary: ${input.relationshipSummary}`,
+    outputSchema: GenerateSummaryReportOutputSchema,
+  });
 }
 
 const prompt = ai.definePrompt({

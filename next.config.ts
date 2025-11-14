@@ -2,12 +2,6 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   turbopack: {
     root: __dirname,
   },
@@ -33,7 +27,17 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Don't bundle ffmpeg binaries
+      config.externals.push({
+        'fluent-ffmpeg': 'commonjs fluent-ffmpeg',
+        'ffmpeg-static': 'commonjs ffmpeg-static',
+        'ffprobe-static': 'commonjs ffprobe-static',
+      });
+    }
+    return config;
+  },
 };
 
 export default nextConfig;

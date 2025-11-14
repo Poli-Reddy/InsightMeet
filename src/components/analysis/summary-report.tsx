@@ -7,11 +7,10 @@ import type { SummaryData } from "@/lib/types";
 interface SummaryReportProps {
   summary: SummaryData;
   relationshipGraph?: import("@/lib/types").RelationshipGraphData;
+  keywords?: string[];
 }
 
-export default function SummaryReport({ summary }: SummaryReportProps) {
-  // Destructure relationshipGraph from props
-  const { relationshipGraph } = arguments[0] as { relationshipGraph?: import("@/lib/types").RelationshipGraphData };
+export default function SummaryReport({ summary, relationshipGraph, keywords }: SummaryReportProps) {
   function describeRelationships(graph?: import("@/lib/types").RelationshipGraphData): string[] {
     if (!graph || !graph.nodes.length || !graph.links.length) return ["No relationship data available."];
     const typeLabels: Record<string, string> = {
@@ -71,6 +70,25 @@ export default function SummaryReport({ summary }: SummaryReportProps) {
             ))}
           </ul>
         </div>
+        {keywords && keywords.length > 0 && (
+          <div>
+            <h3 className="font-semibold mb-3">Keywords & Entities</h3>
+            <div className="flex flex-wrap gap-2">
+              {keywords.map((keyword, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Badge variant="outline" className="text-sm">
+                    {keyword}
+                  </Badge>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

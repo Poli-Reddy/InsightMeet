@@ -22,7 +22,7 @@ const speakerChartColors = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(v
 
 export default function EmotionTimeline({ data, speakers }: EmotionTimelineProps) {
   // Only show speakers who actually spoke
-  const activeSpeakers = speakers.filter(s => parseInt(s.speakingTime) > 0);
+  const activeSpeakers = speakers.filter(s => (typeof s.speakingTime === 'number' ? s.speakingTime : parseInt(String(s.speakingTime))) > 0);
 
   return (
     <Card className="shadow-md">

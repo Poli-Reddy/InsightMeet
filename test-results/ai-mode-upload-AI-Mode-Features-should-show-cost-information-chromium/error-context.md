@@ -1,0 +1,115 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - button "Go to home page" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+          - generic [ref=e20]: InsightMeet
+        - img [ref=e23]
+    - main [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - heading "Meeting Intelligence Platform" [level=1] [ref=e32]
+          - paragraph [ref=e33]: Transform your meetings with AI-powered insights, sentiment analysis, and relationship mapping
+          - generic [ref=e34]:
+            - generic [ref=e35]:
+              - img [ref=e37]
+              - generic [ref=e47]: AI Analysis
+            - generic [ref=e48]:
+              - img [ref=e50]
+              - generic [ref=e52]: Transcription
+            - generic [ref=e53]:
+              - img [ref=e55]
+              - generic [ref=e60]: Speaker ID
+            - generic [ref=e61]:
+              - img [ref=e63]
+              - generic [ref=e65]: Sentiment
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - generic [ref=e68]: Analysis Mode
+            - generic [ref=e69]: Choose how you want to analyze your meeting
+          - radiogroup [ref=e71]:
+            - generic [ref=e72] [cursor=pointer]:
+              - radio "🤖 AI Analysis (Premium) Fast" [checked] [ref=e73]:
+                - img [ref=e75]
+              - generic [ref=e79]:
+                - generic [ref=e80]: 🤖 AI Analysis (Premium)
+                - generic [ref=e81]: Fast
+            - generic [ref=e82] [cursor=pointer]:
+              - radio "💰 Free Analysis (100% Free) No Cost" [ref=e83]
+              - generic [ref=e86]:
+                - generic [ref=e87]: 💰 Free Analysis (100% Free)
+                - generic [ref=e88]: No Cost
+        - generic [ref=e89]:
+          - generic [ref=e91]:
+            - generic [ref=e92]:
+              - img [ref=e93]
+              - text: Smart Meeting Analysis
+            - generic [ref=e96]: Upload large meeting videos with progress tracking and resume support
+          - generic [ref=e102] [cursor=pointer]:
+            - img [ref=e104]
+            - paragraph [ref=e107]: Click to upload or drag and drop
+            - paragraph [ref=e108]: MP4, AVI, MKV, MOV, or WEBM (up to 500MB)
+        - generic [ref=e109]:
+          - generic [ref=e110]:
+            - heading "Recent Analyses" [level=3] [ref=e111]:
+              - img [ref=e112]
+              - text: Recent Analyses
+            - generic [ref=e114]:
+              - button "Refresh" [ref=e115] [cursor=pointer]
+              - button "Clear all" [ref=e116] [cursor=pointer]
+          - generic [ref=e117]:
+            - generic [ref=e120]:
+              - generic [ref=e121]:
+                - generic [ref=e122]:
+                  - generic [ref=e123]: 11/10/2025, 9:53:11 AM
+                  - generic [ref=e124]: 🤖 AI
+                - generic [ref=e125]:
+                  - img [ref=e126]
+                  - text: a1.mp4
+              - generic [ref=e130]:
+                - button "Open" [ref=e131] [cursor=pointer]:
+                  - generic [ref=e132]:
+                    - text: Open
+                    - img [ref=e133]
+                - button "Hide" [ref=e135] [cursor=pointer]
+                - button "Delete" [ref=e136] [cursor=pointer]
+            - generic [ref=e139]:
+              - generic [ref=e140]:
+                - generic [ref=e141]:
+                  - generic [ref=e142]: 11/10/2025, 9:42:42 AM
+                  - generic [ref=e143]: 💰 Free
+                - generic [ref=e144]:
+                  - img [ref=e145]
+                  - text: a1.mp4
+              - generic [ref=e149]:
+                - button "Open" [ref=e150] [cursor=pointer]:
+                  - generic [ref=e151]:
+                    - text: Open
+                    - img [ref=e152]
+                - button "Hide" [ref=e154] [cursor=pointer]
+                - button "Delete" [ref=e155] [cursor=pointer]
+            - generic [ref=e158]:
+              - generic [ref=e159]:
+                - generic [ref=e160]:
+                  - generic [ref=e161]: 11/10/2025, 9:32:16 AM
+                  - generic [ref=e162]: 💰 Free
+                - generic [ref=e163]:
+                  - img [ref=e164]
+                  - text: a1.mp4
+              - generic [ref=e168]:
+                - button "Open" [ref=e169] [cursor=pointer]:
+                  - generic [ref=e170]:
+                    - text: Open
+                    - img [ref=e171]
+                - button "Hide" [ref=e173] [cursor=pointer]
+                - button "Delete" [ref=e174] [cursor=pointer]
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e180] [cursor=pointer]:
+    - img [ref=e181]
+  - alert [ref=e184]
+```

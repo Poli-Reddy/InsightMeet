@@ -1,3 +1,26 @@
+import { z } from 'zod';
+
+// Analysis mode type
+export type AnalysisMode = 'ai' | 'free';
+
+export const transcriptSchema = z.object({
+  transcript: z.array(
+    z.object({
+      id: z.number(),
+      speaker: z.string(),
+      label: z.string(),
+      characteristic: z.object({
+        color: z.string(),
+        description: z.string(),
+      }),
+      text: z.string(),
+      sentiment: z.enum(['Positive', 'Negative', 'Neutral']),
+      emotion: z.string(),
+      timestamp: z.string(),
+    })
+  ),
+});
+
 export interface TranscriptEntry {
   id: number;
   speaker: string;
@@ -26,9 +49,12 @@ export interface ParticipationMetric {
     color: string;
     description: string;
   };
-  speakingTime: string;
-  conflict: number;
-  sentiment: 'Positive' | 'Negative' | 'Neutral';
+  speakingTime: number; // in seconds
+  wordCount?: number;
+  conflict?: number;
+  sentiment?: 'Positive' | 'Negative' | 'Neutral';
+  dominance?: number;
+  engagement?: number;
 }
 
 export interface EmotionTimelinePoint {
@@ -47,6 +73,10 @@ export interface GraphLink {
   target: string;
   type: 'support' | 'conflict' | 'neutral';
   value: number;
+  avgSentiment?: number; // Average sentiment score for this relationship (-1 to 1)
+  timestamps?: string[]; // When interactions occurred
+  topics?: string[]; // Topics discussed in this relationship
+  initiator?: string; // Who initiated more (source or target)
 }
 
 export interface RelationshipGraphData {
@@ -59,6 +89,52 @@ export interface SummaryData {
   overallSentiment: string;
   points: string[];
   relationshipSummary: string;
+  summaryReport: string;
+}
+
+export interface Topic {
+  topic: string;
+  summary: string;
+}
+
+export const unansweredQuestionSchema = z.object({
+  question: z.string(),
+  speaker: z.string(),
+  timestamp: z.string(),
+});
+
+export type UnansweredQuestion = z.infer<typeof unansweredQuestionSchema>;
+
+export const interruptionSchema = z.object({
+  interrupter: z.string(),
+  interrupted: z.string(),
+  timestamp: z.string(),
+  text: z.string(),
+});
+
+export type Interruption = z.infer<typeof interruptionSchema>;
+
+export interface GroupCohesionAnalysis {
+  agreementScore?: number;
+  conflictScore?: number;
+  cohesionSummary?: string;
+}
+
+export interface InfluenceNode {
+  id: string;
+  label: string;
+}
+
+export interface InfluenceLink {
+  source: string;
+  target: string;
+  influenceScore: number;
+  emotionShift?: string;
+}
+
+export interface SpeakerInfluenceGraph {
+  nodes: InfluenceNode[];
+  links: InfluenceLink[];
 }
 
 export interface AnalysisData {
@@ -67,4 +143,12 @@ export interface AnalysisData {
   participation: ParticipationMetric[];
   emotionTimeline: EmotionTimelinePoint[];
   relationshipGraph: RelationshipGraphData;
+  actionItems: string[];
+  decisions: string[];
+  keywords: string[];
+  topics: Topic[];
+  unansweredQuestions: UnansweredQuestion[];
+  interruptions: Interruption[];
+  groupCohesion: GroupCohesionAnalysis;
+  speakerInfluenceGraph: SpeakerInfluenceGraph;
 }

@@ -40,11 +40,43 @@ const DiarizeAudioOutputSchema = z.object({
 });
 export type DiarizeAudioOutput = z.infer<typeof DiarizeAudioOutputSchema>;
 
-// Main function
+// Main function - cascading fallback: AssemblyAI → Deepgram → Gemini
 export async function diarizeAudio(
   input: DiarizeAudioInput
 ): Promise<DiarizeAudioOutput> {
-  return diarizeAudioFlow(input);
+  // Try AssemblyAI first (best quality, accepts video directly)
+  if (process.env.ASSEMBLYAI_API_KEY) {
+    try {
+      console.log('🎯 Trying AssemblyAI for transcription...');
+      const { diarizeAudioWithAssemblyAI } = await import('./speaker-diarization-assemblyai');
+      const result = await diarizeAudioWithAssemblyAI(input);
+      console.log('✅ AssemblyAI succeeded!');
+      return result;
+    } catch (error) {
+      console.error('❌ AssemblyAI failed:', error);
+      console.log('⏭️  Falling back to Deepgram...');
+    }
+  }
+
+  // Try Deepgram second (fast, accepts video directly)
+  if (process.env.DEEPGRAM_API_KEY) {
+    try {
+      console.log('🎯 Trying Deepgram for transcription...');
+      const { diarizeAudioWithDeepgram } = await import('./speaker-diarization-deepgram');
+      const result = await diarizeAudioWithDeepgram(input);
+      console.log('✅ Deepgram succeeded!');
+      return result;
+    } catch (error) {
+      console.error('❌ Deepgram failed:', error);
+      console.log('⏭️  Falling back to Gemini...');
+    }
+  }
+  
+  // Fallback to Gemini (slowest but most reliable)
+  console.log('🎯 Using Gemini for transcription (final fallback)...');
+  const result = await diarizeAudioFlow(input);
+  console.log('✅ Gemini succeeded!');
+  return result;
 }
 
 // Prompt definition

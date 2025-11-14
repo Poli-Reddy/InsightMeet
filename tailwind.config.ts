@@ -22,6 +22,27 @@ export default {
         code: ['monospace'],
       },
       colors: {
+        // Coffee/Mocha/Caramel Theme
+        mocha: {
+          DEFAULT: '#a47148',
+          light: '#b58158',
+          dark: '#8a5d3a',
+        },
+        caramel: {
+          DEFAULT: '#d6a36f',
+          light: '#e0b37f',
+          dark: '#c8935f',
+        },
+        gold: {
+          DEFAULT: '#f4ca64',
+          light: '#f7d584',
+          dark: '#e6b844',
+        },
+        espresso: '#1a120d',
+        cocoa: '#2d1f14',
+        'deep-mocha': '#3b2a1e',
+        ivory: '#f7f4f1',
+        taupe: '#b9a898',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {

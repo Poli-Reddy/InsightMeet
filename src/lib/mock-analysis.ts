@@ -6,6 +6,26 @@ const MEETING_DURATION_SECONDS = 14;
 const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 const getRandomElement = <T>(arr: T[]): T => arr[getRandomInt(0, arr.length - 1)];
 
+// Utility function to format time properly (handles minutes and hours)
+const formatTimestamp = (totalSeconds: number): string => {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  } else {
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+};
+
+// Dynamic duration calculation based on actual content
+const calculateDynamicDuration = (baseSeconds: number, contentLength: number): number => {
+  // For longer content, extend duration proportionally
+  const extensionFactor = Math.max(1, Math.floor(contentLength / 10));
+  return Math.min(baseSeconds * extensionFactor, 3600); // Cap at 1 hour for demo
+};
+
 const genders = ['Man', 'Woman'];
 const clothingTypes = ['shirt', 't-shirt', 'blouse', 'hoodie', 'sweater'];
 const colors = ['red', 'blue', 'green', 'black', 'white', 'yellow', 'purple', 'gray'];
@@ -57,7 +77,11 @@ const generateTranscript = (): TranscriptEntry[] => {
             text: `This is a short statement from speaker ${speakerId}.`,
             sentiment,
             emotion: getRandomElement(emotions),
-            timestamp: `00:${currentTime.toString().padStart(2, '0')}`,
+            timestamp: formatTimestamp(currentTime),
+            characteristic: {
+                color: `hsl(${(speakerId.charCodeAt(0) - 65) * 137.5 % 360}, 70%, 50%)`,
+                description: speakers.find(s => s.id === speakerId)!.label
+            }
         });
     }
     return entries;
@@ -72,10 +96,12 @@ const generateParticipation = (): ParticipationMetric[] => {
 
     speakers.forEach((speaker) => {
         let speakingTime = 0;
+        let wordCount = 0;
         if (speakersWhoSpoke.includes(speaker.id)) {
              const utterances = transcript.filter(t => t.speaker === speaker.id);
              speakingTime = utterances.length * getRandomInt(1,3); // Approximate time
              speakingTime = Math.max(1, Math.min(speakingTime, remainingTime));
+             wordCount = utterances.reduce((sum, u) => sum + (u.text?.split(/\s+/).filter(w => w.length > 0).length || 0), 0);
         }
         
         remainingTime -= speakingTime;
@@ -93,27 +119,38 @@ const generateParticipation = (): ParticipationMetric[] => {
         metrics.push({
             speaker: speaker.id,
             label: speaker.label,
-            speakingTime: `${speakingTime} sec`,
+            speakingTime: speakingTime,
+            wordCount: wordCount,
             conflict: getRandomInt(5, 40),
             sentiment: overallSentiment,
+            engagement: 0, // Will be calculated below
+            characteristic: {
+                color: `hsl(${(speaker.id.charCodeAt(0) - 65) * 137.5 % 360}, 70%, 50%)`,
+                description: speaker.label
+            }
         });
     });
 
     // Ensure total time doesn't exceed duration
-    let totalSpeakingTime = metrics.reduce((sum, m) => sum + parseInt(m.speakingTime), 0);
+    let totalSpeakingTime = metrics.reduce((sum, m) => sum + m.speakingTime, 0);
     let timeDiscrepancy = totalSpeakingTime - MEETING_DURATION_SECONDS;
     if (timeDiscrepancy > 0) {
-        let activeSpeakers = metrics.filter(m => parseInt(m.speakingTime) > 0);
+        let activeSpeakers = metrics.filter(m => m.speakingTime > 0);
         while(timeDiscrepancy > 0 && activeSpeakers.length > 0) {
            let speakerToAdjust = getRandomElement(activeSpeakers);
-           let currentSpeakingTime = parseInt(speakerToAdjust.speakingTime);
-           if(currentSpeakingTime > 0){
-               speakerToAdjust.speakingTime = `${currentSpeakingTime-1} sec`;
+           if(speakerToAdjust.speakingTime > 0){
+               speakerToAdjust.speakingTime = speakerToAdjust.speakingTime - 1;
                timeDiscrepancy--;
            }
-           activeSpeakers = metrics.filter(m => parseInt(m.speakingTime) > 0);
+           activeSpeakers = metrics.filter(m => m.speakingTime > 0);
         }
     }
+
+    // Calculate engagement percentages
+    totalSpeakingTime = metrics.reduce((sum, m) => sum + m.speakingTime, 0);
+    metrics.forEach(m => {
+        m.engagement = totalSpeakingTime > 0 ? (m.speakingTime / totalSpeakingTime) * 100 : 0;
+    });
 
 
     return metrics;
@@ -124,10 +161,25 @@ const participation = generateParticipation();
 
 const generateEmotionTimeline = (): EmotionTimelinePoint[] => {
     const timeline: EmotionTimelinePoint[] = [];
-    const numPoints = 8;
+    
+    // Dynamic number of points based on duration
+    // For short videos (< 60s): 1 point per 2 seconds
+    // For medium videos (60s-300s): 1 point per 5 seconds  
+    // For long videos (> 300s): 1 point per 10 seconds
+    let pointInterval: number;
+    if (MEETING_DURATION_SECONDS < 60) {
+        pointInterval = 2;
+    } else if (MEETING_DURATION_SECONDS < 300) {
+        pointInterval = 5;
+    } else {
+        pointInterval = 10;
+    }
+    
+    const numPoints = Math.max(3, Math.floor(MEETING_DURATION_SECONDS / pointInterval));
+    
     for (let i = 0; i <= numPoints; i++) {
         const time = Math.floor(i * (MEETING_DURATION_SECONDS / numPoints));
-        const point: EmotionTimelinePoint = { time: `0:${time.toString().padStart(2, '0')}` };
+        const point: EmotionTimelinePoint = { time: formatTimestamp(time) };
         speakerIds.forEach(id => {
             if (speakersWhoSpoke.includes(id)) {
                 point[id] = Math.random() * 1.8 - 0.9; // Fluctuate sentiment
@@ -192,9 +244,35 @@ export const mockAnalysisData: AnalysisData = {
       "Another participant suggests a brief follow-up to deconflict the schedules.",
     ],
     relationshipSummary: "Initial discussion shows a collaborative tone, with one participant providing support to another's concern. Most participants were listening.",
+    summaryReport: "This brief 14-second meeting clip captures a focused discussion about project timelines and coordination. The conversation demonstrates effective communication patterns with participants actively engaging on critical project matters. The overall sentiment reflects a professional, solution-oriented approach to addressing potential scheduling conflicts."
   },
   transcript,
   participation,
   emotionTimeline: generateEmotionTimeline(),
   relationshipGraph: generateRelationshipGraph(),
+  actionItems: [
+    "Review final assets before the deadline",
+    "Schedule follow-up meeting to resolve deployment conflicts",
+    "Coordinate with other team on deployment schedule"
+  ],
+  decisions: [
+    "Proceed with current timeline pending conflict resolution",
+    "Hold brief follow-up meeting to deconflict schedules"
+  ],
+  keywords: ["deadline", "assets", "deployment", "schedule", "review", "conflict"],
+  topics: [
+    { topic: "Project Timeline", summary: "Discussion about upcoming deadlines and asset readiness" },
+    { topic: "Team Coordination", summary: "Addressing potential scheduling conflicts with other teams" }
+  ],
+  unansweredQuestions: [],
+  interruptions: [],
+  groupCohesion: {
+    agreementScore: 75,
+    conflictScore: 25,
+    cohesionSummary: "Team shows good collaboration with minor scheduling concerns"
+  },
+  speakerInfluenceGraph: {
+    nodes: speakers.map(s => ({ id: s.id, label: s.label })),
+    links: []
+  }
 };

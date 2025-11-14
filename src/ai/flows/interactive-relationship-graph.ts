@@ -24,41 +24,86 @@ const RelationshipGraphOutputSchema = z.object({
 export type RelationshipGraphOutput = z.infer<typeof RelationshipGraphOutputSchema>;
 
 export async function generateRelationshipGraph(input: RelationshipGraphInput): Promise<RelationshipGraphOutput> {
-  return relationshipGraphFlow(input);
+  const { callGroqWithFallback } = await import('@/ai/groq-client');
+  
+  return await callGroqWithFallback(input, {
+    systemPrompt: 'You are an AI that analyzes meeting transcripts and generates relationship graphs. Return ONLY valid JSON with "graphData" field. Keep response concise - limit timestamps to 3 max and topics to 2 max per link.',
+    userPrompt: `Analyze this transcript and generate a relationship graph. Format:
+{
+  "nodes": [{"id": "Speaker A", "label": "Speaker A", "group": 1}],
+  "links": [{"source": "Speaker A", "target": "Speaker B", "type": "support|conflict|neutral", "value": 1-10, "avgSentiment": -1 to 1, "initiator": "Speaker A", "timestamps": ["00:05"], "topics": ["topic1"]}]
+}
+
+Rules:
+- type: support (avgSentiment > 0.3), conflict (< -0.3), neutral (else)
+- timestamps: max 3 per link
+- topics: max 2 per link
+- Only include actual interactions
+
+Transcript:\n${input.transcript}`,
+    outputSchema: RelationshipGraphOutputSchema,
+  });
 }
 
 const prompt = ai.definePrompt({
   name: 'relationshipGraphPrompt',
   input: {schema: RelationshipGraphInputSchema},
   output: {schema: RelationshipGraphOutputSchema},
-  prompt: `You are an AI assistant that analyzes meeting transcripts and generates relationship graphs.
+  prompt: `You are an AI assistant that analyzes meeting transcripts and generates detailed relationship graphs showing how participants interact.
 
-  Analyze the following meeting transcript to identify relationships between participants. Relationships can be supportive, neutral, or conflicting.  Provide the output as JSON that can be directly used by D3.js to render a graph.
+  Analyze the following meeting transcript to identify relationships between participants based on their interactions.
 
-  The JSON should have the following format:
+  RELATIONSHIP TYPES:
+  - "support": Agreeing, building on ideas, encouraging, collaborative language (e.g., "I agree", "great point", "yes, and...")
+  - "conflict": Disagreeing, challenging, interrupting, contradicting (e.g., "I disagree", "that won't work", "but...")
+  - "neutral": Informational exchanges, questions, clarifications without strong sentiment
+
+  ANALYSIS RULES:
+  1. Create ONE directional link per pair of speakers who interact (source → target shows primary direction)
+  2. "value" = number of interactions between the pair (1-10 scale)
+  3. "avgSentiment" = average sentiment of their exchanges (-1.0 to 1.0, where -1 is very negative, 0 is neutral, 1 is very positive)
+  4. "type" is determined by the dominant tone: avgSentiment > 0.3 = "support", < -0.3 = "conflict", else "neutral"
+  5. "initiator" = ID of the speaker who initiated more conversations (source or target)
+  6. "timestamps" = array of timestamps when key interactions occurred (up to 5)
+  7. "topics" = array of main topics discussed in this relationship (up to 3)
+  8. Only include links where speakers actually interact (not just speak in the same meeting)
+  9. Each speaker gets a unique "group" number (1, 2, 3, etc.) for visual distinction
+
+  OUTPUT FORMAT (valid JSON only):
   {
     "nodes": [
       {"id": "A", "group": 1, "label": "Speaker A"},
-      {"id": "B", "group": 2, "label": "Speaker B"},
-      ...
+      {"id": "B", "group": 2, "label": "Speaker B"}
     ],
     "links": [
-      {"source": "A", "target": "B", "value": 1, "type": "conflict"},
-      {"source": "B", "target": "C", "value": 2, "type": "support"},
-      ...
+      {
+        "source": "A", 
+        "target": "B", 
+        "value": 5, 
+        "type": "support", 
+        "avgSentiment": 0.6,
+        "initiator": "A",
+        "timestamps": ["00:05", "00:12", "00:23"],
+        "topics": ["project timeline", "budget"]
+      },
+      {
+        "source": "B", 
+        "target": "C", 
+        "value": 3, 
+        "type": "conflict", 
+        "avgSentiment": -0.5,
+        "initiator": "C",
+        "timestamps": ["00:15", "00:30"],
+        "topics": ["resource allocation"]
+      }
     ]
   }
 
-  Node properties:
-  - id: Unique identifier for each participant (e.g., "A", "B", "C").
-  - group: A numeric category (starting from 1) used for node coloring (e.g., 1, 2, 3).
-  - label: A display name for the node (e.g., "Speaker A (Black shirt)").
-
-  Link properties:
-  - source: ID of the source participant.
-  - target: ID of the target participant.
-  - value: A numeric value representing the strength or frequency of the interaction.
-  - type: The type of relationship ("support", "neutral", or "conflict").
+  IMPORTANT: 
+  - Return ONLY valid JSON, no markdown or explanations
+  - Ensure all link source/target IDs match existing node IDs
+  - Include timestamps, topics, and initiator for richer analysis
+  - If no clear interactions exist, return empty arrays: {"nodes": [], "links": []}
 
   Transcript:
   {{{transcript}}}

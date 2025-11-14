@@ -29,17 +29,44 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(JSON.parse(buf));
     }
     const files = await fs.readdir(dataDir);
-    const list = [] as Array<{ id: string; createdAt: string; fileName?: string; hidden?: boolean }>
+    const list = [] as Array<{ id: string; createdAt: string; fileName?: string; hidden?: boolean; mode?: string }>
     for (const f of files) {
       if (!f.endsWith('.json')) continue;
       const buf = await fs.readFile(path.join(dataDir, f), 'utf-8');
       const j = JSON.parse(buf);
-      list.push({ id: j.id, createdAt: j.createdAt, fileName: j.fileName, hidden: !!j.hidden });
+      list.push({ id: j.id, createdAt: j.createdAt, fileName: j.fileName, hidden: !!j.hidden, mode: j.mode });
     }
     list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return NextResponse.json({ items: list });
   } catch (e) {
     return NextResponse.json({ error: 'Failed to list analyses' }, { status: 500 });
+  }
+}
+
+// Update analysis with full analysis data
+export async function PATCH(req: NextRequest) {
+  try {
+    const { id, fullAnalysis } = await req.json();
+    if (!id || !fullAnalysis) {
+      return NextResponse.json({ error: 'Missing id or fullAnalysis' }, { status: 400 });
+    }
+    
+    const dataDir = path.join(process.cwd(), 'data');
+    const filePath = path.join(dataDir, `${id}.json`);
+    
+    // Read existing data
+    const existing = JSON.parse(await fs.readFile(filePath, 'utf-8'));
+    
+    // Add full analysis
+    existing.fullAnalysis = fullAnalysis;
+    
+    // Save back
+    await fs.writeFile(filePath, JSON.stringify(existing, null, 2), 'utf-8');
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Failed to update analysis:', error);
+    return NextResponse.json({ error: 'Failed to update analysis' }, { status: 500 });
   }
 }
 
@@ -55,6 +82,8 @@ export async function POST(req: NextRequest) {
     // Read the multipart form data
     const formData = await req.formData();
     const file = formData.get('file');
+    const mode = (formData.get('mode') as string) || 'ai'; // Get mode from form data
+    
     if (!file || typeof file === 'string') {
       console.error('No file uploaded');
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
@@ -64,19 +93,63 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'File too large', details: file.size }, { status: 413 });
     }
 
-    // Read file as ArrayBuffer and convert to base64 data URI
+    // Read file as ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString('base64');
+    const fileBuffer = Buffer.from(arrayBuffer);
     const mimeType = file.type || 'audio/wav';
-    const audioDataUri = `data:${mimeType};base64,${base64}`;
-
-    // Call diarizeAudio server-side to avoid sending large payloads to client
+    
+    console.log(`Processing ${mimeType} file directly (${(fileBuffer.length / 1024 / 1024).toFixed(2)}MB) in ${mode} mode`);
+    
+    // Process based on mode
     let diarizationResult;
-    try {
-      diarizationResult = await diarizeAudio({ audioDataUri });
-    } catch (err: any) {
-      console.error('Diarization failed:', err);
-      return NextResponse.json({ error: err?.message || 'Diarization failed', details: err?.toString() }, { status: 500 });
+    
+    if (mode === 'free') {
+      console.log('🆓 Using 100% free processing (Whisper + Resemblyzer)');
+      
+      try {
+        // Import free audio processing
+        const { processAudioFileFree } = await import('@/lib/free-analysis/audio-processing');
+        
+        // Process with free methods
+        const freeResult = await processAudioFileFree(fileBuffer, file.name);
+        
+        // Convert to expected format
+        diarizationResult = {
+          utterances: freeResult.utterances,
+          durationSec: freeResult.duration,
+        };
+        
+        console.log('✅ Free processing complete');
+        
+      } catch (freeError) {
+        console.error('❌ Free processing failed:', freeError);
+        console.log('🔄 Falling back to AI processing...');
+        
+        // Fallback to AI processing
+        const base64 = fileBuffer.toString('base64');
+        const audioDataUri = `data:${mimeType};base64,${base64}`;
+        
+        try {
+          diarizationResult = await diarizeAudio({ audioDataUri });
+        } catch (err: any) {
+          console.error('Diarization failed:', err);
+          return NextResponse.json({ error: err?.message || 'Diarization failed', details: err?.toString() }, { status: 500 });
+        }
+      }
+    } else {
+      console.log('🤖 Using AI processing (AssemblyAI/Deepgram)');
+      
+      // Convert to base64 data URI - send video/audio directly to AI
+      const base64 = fileBuffer.toString('base64');
+      const audioDataUri = `data:${mimeType};base64,${base64}`;
+
+      // Call diarizeAudio server-side to avoid sending large payloads to client
+      try {
+        diarizationResult = await diarizeAudio({ audioDataUri });
+      } catch (err: any) {
+        console.error('Diarization failed:', err);
+        return NextResponse.json({ error: err?.message || 'Diarization failed', details: err?.toString() }, { status: 500 });
+      }
     }
 
     // If this is a video, attempt to extract frames around utterance timestamps
@@ -193,6 +266,7 @@ export async function POST(req: NextRequest) {
       const fileName = (typeof file.name === 'string') ? file.name : undefined;
       const saved = {
         id: analysisId,
+        mode,
         createdAt: new Date().toISOString(),
         mimeType,
         fileName,

@@ -76,7 +76,7 @@ npm run dev
 http://localhost:3000
 ```
 
-## 📖 Usage
+##  Usage
 
 ### Free Mode (No API Keys Required)
 1. Select "Free Mode" on the homepage
@@ -295,7 +295,7 @@ Contributions are welcome! Please follow these steps:
 - [ ] Integration with Zoom, Teams, Google Meet
 - [ ] Distributed processing with Kubernetes
 
-## 📚 Documentation
+##  Documentation
 
 - [Large File Processing](FREE_MODE_LARGE_FILES.md) - Handling 50-500MB files
 - [Presentation](InsightMeet_Presentation.md) - Research presentation

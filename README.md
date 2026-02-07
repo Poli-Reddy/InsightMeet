@@ -7,24 +7,24 @@ Transform your meetings with AI-powered insights, sentiment analysis, and relati
 [![Python](https://img.shields.io/badge/Python-3.11+-blue)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
 
-## 🌟 Features
+##  Features
 
 ### Dual-Mode Architecture
 - **AI Mode**: High-accuracy analysis using commercial APIs (AssemblyAI, Deepgram, Gemini)
 - **Free Mode**: 100% local processing using open-source models (Whisper, Resemblyzer)
 
 ### Comprehensive Analysis
-- 🎤 **Automatic Transcription** with speaker diarization
-- 😊 **Sentiment Analysis** for each utterance
-- 🔗 **Relationship Graphs** showing speaker interactions
-- ✅ **Action Items** extraction
-- 📋 **Decision Detection**
-- 🔑 **Keyword Extraction**
-- 📊 **Topic Segmentation**
-- ❓ **Unanswered Questions** tracking
-- 🔀 **Interruption Detection**
-- 📈 **Participation Metrics**
-- 📉 **Emotion Timeline**
+-  **Automatic Transcription** with speaker diarization
+-  **Sentiment Analysis** for each utterance
+-  **Relationship Graphs** showing speaker interactions
+-  **Action Items** extraction
+-  **Decision Detection**
+-  **Keyword Extraction**
+-  **Topic Segmentation**
+-  **Unanswered Questions** tracking
+-  **Interruption Detection**
+-  **Participation Metrics**
+-  **Emotion Timeline**
 
 ### Advanced Features
 - Support for large files (up to 500MB)
@@ -34,7 +34,7 @@ Transform your meetings with AI-powered insights, sentiment analysis, and relati
 - PDF report export
 - Analysis history
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 - Node.js 20+ and npm
@@ -92,7 +92,7 @@ http://localhost:3000
 4. Faster processing with higher accuracy
 5. Automatic fallback between providers
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 ┌─────────────────────────────────────────┐
@@ -138,7 +138,7 @@ http://localhost:3000
 - Node.js 20+
 - Python 3.11+
 
-## 📊 Performance
+##  Performance
 
 | File Size | Free Mode | AI Mode |
 |-----------|-----------|---------|
@@ -157,7 +157,7 @@ http://localhost:3000
 - Diarization: 92-95%
 - Sentiment: 98% correlation
 
-## 🔧 Configuration
+##  Configuration
 
 ### Chunk Processing (Free Mode)
 Edit `src/lib/free-analysis/audio-processing.ts`:
@@ -174,7 +174,7 @@ const pollIntervalMs = 5000;      // Check every 5 seconds
 const maxWaitTimeMs = 1800000;    // Timeout after 30 minutes
 ```
 
-## 🐳 Docker Services
+##  Docker Services
 
 ### Whisper Service (Port 8001)
 - Transcription using faster-whisper
@@ -206,7 +206,7 @@ docker-compose build
 docker-compose up -d
 ```
 
-## 🧪 Testing
+##  Testing
 
 ```bash
 # Run all tests
@@ -225,7 +225,7 @@ npm run test:e2e
 npm run test:coverage
 ```
 
-## 📝 API Documentation
+##  API Documentation
 
 ### Upload Endpoint
 ```
@@ -254,7 +254,7 @@ Response:
 - `POST /api/interruptions` - Detect interruptions
 - `POST /api/unanswered-questions` - Find unanswered questions
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions are welcome! Please follow these steps:
 
@@ -264,11 +264,8 @@ Contributions are welcome! Please follow these steps:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - [OpenAI Whisper](https://github.com/openai/whisper) - Speech recognition
 - [Resemblyzer](https://github.com/resemble-ai/Resemblyzer) - Speaker embeddings
@@ -276,7 +273,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [AssemblyAI](https://www.assemblyai.com/) - AI transcription API
 - [Deepgram](https://deepgram.com/) - Speech-to-text API
 
-## 📧 Contact
+##  Contact
 
 **Project Maintainer:** Poli Reddy
 
@@ -284,7 +281,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Repository:** [InsightMeet](https://github.com/Poli-Reddy/InsightMeet)
 
-## 🗺️ Roadmap
+##  Roadmap
 
 ### Short-term (6 months)
 - [ ] Multilingual support (Spanish, French, German)
@@ -303,7 +300,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Large File Processing](FREE_MODE_LARGE_FILES.md) - Handling 50-500MB files
 - [Presentation](InsightMeet_Presentation.md) - Research presentation
 
-## ⚠️ Troubleshooting
+##  Troubleshooting
 
 ### Whisper service not responding
 ```bash
@@ -328,7 +325,7 @@ docker system prune -a
 docker-compose build --no-cache
 ```
 
-## 💡 Tips
+##  Tips
 
 - Use Free Mode for sensitive meetings (100% local processing)
 - Use AI Mode for faster processing and higher accuracy
@@ -338,4 +335,4 @@ docker-compose build --no-cache
 
 ---
 
-**Made with ❤️ for better meetings**
+**Made with Love(^_^) for better meetings**
